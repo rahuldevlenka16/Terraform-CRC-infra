@@ -1,0 +1,6 @@
+aws lambda invoke \
+  --function-name visitor-counter \
+  response.json \
+  --region ap-south-1 --no-verify-ssl
+
+cat response.json

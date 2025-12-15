@@ -1,0 +1,25 @@
+## verify with CLI
+#list tables
+    aws dynamodb list-tables --region ap-south-1 --no-verify-ssl
+#get table structure
+    aws dynamodb describe-table   --table-name visitor-count-tf   --region ap-south-1 --no-verify-ssl
+
+#insert value
+    aws dynamodb put-item \
+    --table-name visitor-count-tf \
+    --item '{
+        "id": {"S": "visitors"},
+        "count": {"N": "0"}
+    }' \
+    --region ap-south-1 --no-verify-ssl
+#get row by id
+    aws dynamodb get-item --table-name visitor-count-tf --key '{"id": {"S": "visitors"} }' --region ap-south-1 --no-verify-ssl
+#update value (update item from visitor-count where pk is visitor, increment value of count)
+    aws dynamodb update-item \
+    --table-name visitor-count-tf \
+    --key '{"id":{"S":"visitors"}}' \
+    --update-expression "ADD #c :inc" \
+    --expression-attribute-names '{"#c":"count"}' \
+    --expression-attribute-values '{":inc":{"N":"1"}}' \
+    --return-values UPDATED_NEW \
+    --region ap-south-1 --no-verify-ssl

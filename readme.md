@@ -60,4 +60,55 @@ Note :
 
 
 
-2. 
+2. Terraform cannot and shoud not create the s3 and dynamodb backend to store s3 state and lock.
+
+    THe problem is if you ask terraform to create s3 backend and also store the s3 backend in the main.tf like this below,
+
+    terraform {
+        backend "s3" {
+            bucket = "tf-state"
+        }
+        }
+
+        resource "aws_s3_bucket" "tf_state" {
+        bucket = "tf-state"
+    }
+
+    it will create a paradox, " I need to store the state in tf-state bucket, but also I need to create tf_state bucket"
+
+    When creating tf_state bucket, it need to store the state of this created bucket in state file, state file must be stored in the tf_state bucket itself, which is not yet created.
+
+
+    So always create s3 bucket and dynamo db manually, before storing state.
+
+    Best practice:
+
+    1. create s3 and dynamodb manually
+        aws s3api create-bucket \
+        --bucket rahul-terraform-state-bucket-16-12-2025 \
+        --region ap-south-1
+
+        aws s3api put-bucket-versioning \
+        --bucket rahul-terraform-state-bucket-16-12-2025 \
+        --versioning-configuration Status=Enabled
+
+        aws dynamodb create-table \
+        --table-name terraform-locks \
+        --attribute-definitions AttributeName=LockID,AttributeType=S \
+        --key-schema AttributeName=LockID,KeyType=HASH \
+        --billing-mode PAY_PER_REQUEST
+
+
+    2. add the backend in main.tf
+        ```
+        terraform {
+        backend "s3" {
+            bucket         = "rahul-terraform-state-bucket-16-12-2025"
+            key            = "cloud-resume/terraform.tfstate"
+            region         = "ap-south-1"
+            dynamodb_table = "terraform-locks"
+            encrypt        = true
+        }
+        }
+        ```
+    3. terraform init -migrate-state

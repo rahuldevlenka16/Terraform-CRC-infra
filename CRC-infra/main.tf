@@ -144,39 +144,74 @@ resource "aws_s3_bucket" "frontend_bucket" {
 resource "aws_s3_bucket_public_access_block" "public_access" {
   bucket = aws_s3_bucket.frontend_bucket.id
 
-  block_public_acls       = false
-  block_public_policy     = false
-  ignore_public_acls      = false
-  restrict_public_buckets = false
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
 }
 
 #allow public access to this bucket using bucket policy
-resource "aws_s3_bucket_policy" "public_read" {
+# resource "aws_s3_bucket_policy" "public_read" {
+#   bucket = aws_s3_bucket.frontend_bucket.id
+
+#   policy = jsonencode(
+#     {
+#     "Version": "2012-10-17",
+#     "Statement": [
+#         {
+#             "Sid": "AllowAllAccess",
+#             "Effect": "Allow",
+#             "Principal": "*",
+#             "Action": "s3:GetObject",
+#             "Resource": "${aws_s3_bucket.frontend_bucket.arn}/*"
+#         }
+#             ]
+    # })
+
+
+# }
+
+resource "aws_s3_bucket_policy" "cloudfront_read" {
   bucket = aws_s3_bucket.frontend_bucket.id
 
-  policy = jsonencode({
-    "Version": "2012-10-17",
-    "Statement": [
+  policy = jsonencode(
         {
-            "Sid": "AllowAllAccess",
-            "Effect": "Allow",
-            "Principal": "*",
-            "Action": "s3:GetObject",
-            "Resource": "${aws_s3_bucket.frontend_bucket.arn}/*"
-        }
-    ]
-})
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Sid": "AllowCloudFrontAccess",
+                "Effect": "Allow",
+                "Principal": {
+                    "Service" : "cloudfront.amazonaws.com"
+                },
+                "Action": "s3:GetObject",
+                "Resource": "arn:aws:s3:::cloud-resume-terraform-16-12-2025/*",
+                "Condition": {
+                    "StringEquals": {
+                        "aws:SourceArn": "${aws_cloudfront_distribution.cdn.arn}"
+                    }
+                }
+            }
+        ]
+    }
+    )
+
+
 }
 
 
 #enable s3 website hosting for the index.html
-resource "aws_s3_bucket_website_configuration" "website" {
-  bucket = aws_s3_bucket.frontend_bucket.id
+# resource "aws_s3_bucket_website_configuration" "website" {
+#   bucket = aws_s3_bucket.frontend_bucket.id
 
-  index_document {
-    suffix = "index.html"
-  }
-}
+#   index_document {
+#     suffix = "index.html"
+#   }
+# }
+
+
+
+
 #--------------------------------s3 ends
 
 
@@ -190,20 +225,27 @@ resource "aws_cloudfront_distribution" "cdn" {
   comment = "Cloud Resume CDN"
 
     #specify the origin i.e. the domain where the cloudfront will send request to, it should he http-only
-  origin {
-    domain_name = aws_s3_bucket_website_configuration.website.website_endpoint
-    origin_id   = "s3-website-origin"
+#   origin {
+#     domain_name = aws_s3_bucket_website_configuration.website.website_endpoint
+#     origin_id   = "s3-website-origin"
 
-    custom_origin_config {
-      http_port              = 80
-      https_port             = 443
-      origin_protocol_policy = "http-only"
-      origin_ssl_protocols   = ["TLSv1.2"]
-    }
-  }
+#     custom_origin_config {
+#       http_port              = 80
+#       https_port             = 443
+#       origin_protocol_policy = "http-only"
+#       origin_ssl_protocols   = ["TLSv1.2"]
+#     }
+#   }
+
+    origin {
+        domain_name = aws_s3_bucket.frontend_bucket.bucket_regional_domain_name
+        origin_id   = "s3-origin"
+
+        origin_access_control_id = aws_cloudfront_origin_access_control.oac.id
+        }
 
   default_cache_behavior {
-    target_origin_id       = "s3-website-origin"
+    target_origin_id       = "s3-origin"
     viewer_protocol_policy = "redirect-to-https"
 
     allowed_methods  = ["GET", "HEAD"]
@@ -229,6 +271,15 @@ resource "aws_cloudfront_distribution" "cdn" {
   viewer_certificate {
     cloudfront_default_certificate = true
   }
+}
+
+#Allow cloudfront to access s3
+resource "aws_cloudfront_origin_access_control" "oac" {
+  name                              = "cloud-resume-oac"
+  description                       = "OAC for Cloud Resume S3 access"
+  origin_access_control_origin_type = "s3"
+  signing_behavior                  = "always"
+  signing_protocol                  = "sigv4"
 }
 
 #--------------------------------cloudfront ends

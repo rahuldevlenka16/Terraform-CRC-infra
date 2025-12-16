@@ -32,6 +32,32 @@ Problems:
         }
         }
 
+Note :
+
+    If you want only cloudfront to access the API not any other website then use 
+
+    in apiGW,
+    cors_configuration {
+        allow_origins = [
+            "https://d3abcxyz.cloudfront.net"
+        ]
+        allow_methods = ["GET", "OPTIONS"]
+        allow_headers = ["content-type"]
+        }
+
+    in lambda,
+        return {
+        "statusCode": 200,
+        "headers": {
+            "Access-Control-Allow-Origin": "https://d3abcxyz.cloudfront.net",
+            "Access-Control-Allow-Methods": "GET,OPTIONS",
+            "Access-Control-Allow-Headers": "content-type"
+        },
+        "body": json.dumps({"count": count})
+}
+
+
+
 
 
 2. 

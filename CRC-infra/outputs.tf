@@ -13,8 +13,11 @@ output "api_url" {
 #--------------------------------api
 
 #--------------------------------s3
-output "s3_website_url" {
-  value = aws_s3_bucket_website_configuration.website.website_endpoint
+# output "s3_website_url" {
+#   value = aws_s3_bucket_website_configuration.website.website_endpoint
+# }
+output "s3_url" {
+  value = aws_s3_bucket.frontend_bucket.bucket_domain_name
 }
 #--------------------------------s3
 

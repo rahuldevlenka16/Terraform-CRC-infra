@@ -1,0 +1,4 @@
+manualy s3 upload(later it will be automated with ci pipeline)
+
+aws s3 cp frontend/index.html \
+  s3://cloud-resume-terraform-16-12-2025/index.html --no-verify-ssl

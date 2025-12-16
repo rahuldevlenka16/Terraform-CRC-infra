@@ -11,3 +11,15 @@ output "api_url" {
   value = aws_apigatewayv2_api.visitor_api.api_endpoint
 }
 #--------------------------------api
+
+#--------------------------------s3
+output "s3_website_url" {
+  value = aws_s3_bucket_website_configuration.website.website_endpoint
+}
+#--------------------------------s3
+
+#--------------------------------cdn
+output "cloudfront_url" {
+  value = aws_cloudfront_distribution.cdn.domain_name
+}
+#--------------------------------cdn

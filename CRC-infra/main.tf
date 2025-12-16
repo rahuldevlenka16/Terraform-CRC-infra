@@ -10,7 +10,7 @@ module "lambda" {
   policy_name    = "visitor-lambda-policy"
   lambda_zip     = "lambda/lambda.zip"
   table_name     = module.dynamodb.table_name
-  dynamodb_arn   = module.dynamodb.table_arn
+  # dynamodb_arn   = module.dynamodb.table_arn
 }
 
 module "api" {

@@ -14,9 +14,12 @@ def lambda_handler(event, context):
         ReturnValues="UPDATED_NEW"
     )
 
+    count = int(response["Attributes"]["count"])
+
     return {
         "statusCode": 200,
-        "body": json.dumps({
-            "count": int(response["Attributes"]["count"])
-        })
+        "headers": {
+        "Access-Control-Allow-Origin": "*"
+        },
+        "body": json.dumps({"count": count })
     }

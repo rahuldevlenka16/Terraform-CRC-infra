@@ -36,6 +36,11 @@ Add this to **main.tf**:
 resource "aws_apigatewayv2_api" "visitor_api" {
   name          = "visitor-api"
   protocol_type = "HTTP"
+  cors_configuration {
+    allow_origins = ["*"]
+    allow_methods = ["GET", "OPTIONS"]
+    allow_headers = ["*"]
+  }
 }
 ```
 

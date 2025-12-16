@@ -86,10 +86,16 @@ resource "aws_lambda_function" "visitor_lambda" {
 
 
 #--------------------------------api starts
-#create HTTP api
+#create HTTP api, apiGW v2 is used for creating HTTP api, for REST use v1
+#reference https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/apigatewayv2_api
 resource "aws_apigatewayv2_api" "visitor_api" {
   name          = "visitor-api"
   protocol_type = "HTTP"
+  cors_configuration {
+    allow_origins = ["*"]
+    allow_methods = ["GET", "OPTIONS"]
+    allow_headers = ["*"]
+  }
 }
 
 #integrate it with lambda

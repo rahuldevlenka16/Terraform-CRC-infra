@@ -1,6 +1,133 @@
+# Serverless Cloud Resume Infrastructure (AWS + Terraform)
+
+This project is a **production-style serverless web application** built on **AWS using Terraform**, inspired by the **Cloud Resume Challenge**.  
+The goal was not only to implement the challenge, but to **design, validate, and harden the infrastructure step by step**, following real-world DevOps practices.
+
+---
+
+## 🧱 Architecture Overview
+
+- **Frontend**: Static website hosted on Amazon S3  
+- **CDN & HTTPS**: Amazon CloudFront  
+- **Backend**: API Gateway → AWS Lambda → DynamoDB  
+- **Infrastructure as Code**: Terraform  
+- **Security**: Private S3 bucket with CloudFront Origin Access Control (OAC)  
+- **Scalability**: Fully serverless, auto-scaling, pay-per-use  
+
+---
+
+## 📌 Phase-by-Phase Implementation
+
+### Phase 1: DynamoDB (Data Layer)
+- Created a DynamoDB table using on-demand billing (`PAY_PER_REQUEST`)
+- Designed the table to support **atomic updates** to safely handle concurrent visitor updates
+
+---
+
+### Phase 2: IAM + Lambda (Compute Layer)
+- Created an IAM role with least-privilege permissions
+- Built a Lambda function to increment and return the visitor count
+- Verified Lambda functionality using AWS CLI before public exposure
+
+---
+
+### Phase 3: API Gateway (HTTP Access)
+- Created an API Gateway **HTTP API**
+- Integrated API Gateway with Lambda using proxy integration
+- Added a `GET /count` endpoint
+- Configured CORS at the API Gateway level to support browser-based requests
+
+---
+
+### Phase 4: S3 Static Website Hosting (Frontend)
+- Created an S3 bucket for static website hosting
+- Uploaded a basic `index.html` to validate frontend hosting
+- Verified access using the S3 website endpoint
+
+---
+
+### Phase 5: CloudFront (CDN + HTTPS)
+- Added CloudFront in front of S3 to enable HTTPS
+- Configured HTTP → HTTPS redirection
+- Enabled caching for static content
+- Verified access using the CloudFront domain
+
+---
+
+### Phase 6: Custom Domain (Skipped)
+- Custom domain integration using Route 53 and ACM was intentionally skipped
+- Architecture supports adding this later without changes
+
+---
+
+### Phase 7: Security Hardening (Production-Grade)
+- Disabled S3 static website hosting
+- Blocked all public access to the S3 bucket
+- Switched CloudFront origin to S3 REST endpoint
+- Implemented **CloudFront Origin Access Control (OAC)**
+- Updated S3 bucket policy to allow access **only from CloudFront**
+- Verified that direct S3 access is blocked while CloudFront access works
+
+---
+
+## 🔄 Frontend–Backend Flow
+
+1. User accesses the site via CloudFront (HTTPS)
+2. Static content is served from the private S3 bucket
+3. Frontend JavaScript calls API Gateway (`GET /count`)
+4. API Gateway invokes Lambda
+5. Lambda atomically updates the visitor count in DynamoDB
+6. Updated count is returned and displayed in the browser
+
+---
+
+## 🔐 Security Considerations
+
+- S3 bucket is fully private and not directly accessible
+- CloudFront is the only entry point to static content
+- API Gateway CORS is restricted to the CloudFront domain
+- IAM roles follow least-privilege principles
+
+---
+
+## 🧠 Key Learnings
+
+- Proper separation of infrastructure provisioning and application deployment
+- Secure CloudFront-to-S3 access using Origin Access Control
+- Correct CORS handling at the API Gateway level and lambda level
+- Incremental infrastructure validation using Terraform
+- Serverless architecture design for scalability and cost efficiency
+
+---
+
+## 💰 Cost Considerations
+
+All services fall within AWS Free Tier or incur negligible cost for low traffic:
+- AWS Lambda
+- DynamoDB (on-demand)
+- API Gateway (HTTP API)
+- S3 and CloudFront
+
+---
+
+## 📈 Future Enhancements
+
+- Custom domain using Route 53 and ACM
+- CI/CD pipelines using GitHub Actions(completed)
+- CloudFront cache invalidation automation (completed)
+- CloudWatch logging and monitoring
+- AWS WAF integration
+
+---
+
+## 📚 References
+
+- [Cloud Resume Challenge](https://cloudresumechallenge.dev/)
+- AWS Documentation
+- Terraform Documentation
+
+
 Problems:
-
-
 
 1. when I deploy the index.html and used js to fetch to count using the api url, it gave CORS error in the browser
 """

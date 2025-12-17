@@ -67,7 +67,7 @@ resource "aws_iam_role_policy_attachment" "lambda_policy_attach" {
 
 
 resource "aws_lambda_function" "visitor_lambda" {
-  function_name = "visitor-counter" #lambda fucntion name
+  function_name = var.lambda_function_name #lambda fucntion name
   role          = aws_iam_role.lambda_exec_role.arn
   handler       = "index.lambda_handler" #file name must be index.py
   runtime       = "python3.11"
@@ -89,7 +89,7 @@ resource "aws_lambda_function" "visitor_lambda" {
 #create HTTP api, apiGW v2 is used for creating HTTP api, for REST use v1
 #reference https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/apigatewayv2_api
 resource "aws_apigatewayv2_api" "visitor_api" {
-  name          = "visitor-api"
+  name          = var.api_name
   protocol_type = "HTTP"
   cors_configuration {
     allow_origins = ["*"]
@@ -133,11 +133,11 @@ resource "aws_lambda_permission" "allow_apigw" {
 
 #create empty bucket to store the object(index.html)
 resource "aws_s3_bucket" "frontend_bucket" {
-  bucket = "cloud-resume-terraform-16-12-2025"  # must be globally unique
+  bucket = var.s3_bucket_name  # must be globally unique
 
-  tags = {
-    Project = "CloudResume"
-  }
+  # tags = {
+  #   Project = "CloudResume"
+  # }
 }
 
 #allow public s3 access

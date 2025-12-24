@@ -5,6 +5,13 @@ The goal was not only to implement the challenge, but to **design, validate, and
 
 ---
 
+## Repository structure info:
+
+**CRC-infra** folder contains the main terraform files with sample index.html to upload in s3 and lambda function to increment the visit counter in dynamodb.
+
+**p1-p7** folders contains documentation of phases from phase 1 to phase 7 while building the project, more details are explained below.
+
+
 ## 🧱 Architecture Overview
 
 - **Frontend**: Static website hosted on Amazon S3  
